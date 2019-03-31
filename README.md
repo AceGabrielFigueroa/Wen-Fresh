@@ -20,7 +20,7 @@ WenTing Fei|Developer
 + Twilio
   
   
-# How to set up for your own use
+# Setting up your own server
 1. Clone the repo to a [directory](https://github.com/AceGabrielFigueroa/Wen-Fresh.git).
 
 2. After cloning the repository, install the dependencies for python.
@@ -38,3 +38,6 @@ WenTing Fei|Developer
 6. Run the in terminal `ngrok http 5000`
 
 7. In twilio, use messaging incoming hooks to communicate with the applications
+
+# Using the service
+Simply text the number that you have choosen in twilio with a image of a reciept!
