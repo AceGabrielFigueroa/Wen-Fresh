@@ -3,24 +3,67 @@
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse, Message
 from twilio.rest import Client
+import json
+import requests
+
+import io
+import os
+
+# Imports the Google Cloud client library
+from google.cloud import vision
+from google.cloud.vision import types
 
 app = Flask(__name__)
 
+
+def detect_text(path):
+    """Detects text in the file."""
+    from google.cloud import vision
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    print('Texts:')
+
+    for text in texts:
+        print('\n"{}"'.format(text.description))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in text.bounding_poly.vertices])
+
+        print('bounds: {}'.format(','.join(vertices)))
+
 @app.route("/sms", methods=['GET', 'POST'])
-def sms_ahoy_reply():
-    """Respond to incoming messages with a friendly SMS."""
-    # Start our response
+def sms_reply():
+    """Respond to incoming with a simple text message."""
+
     resp = MessagingResponse()
 
-    # Add a text message
-    msg = Message("The Robots are coming! Head for the hills!")
+    # Declare download directory
+    DOWNLOAD_DIRECTORY=".//reciepts"
 
-    # Add a picture message
-    msg.media("https://farm8.staticflickr.com/7090/6941316406_80b4d6d50e_z_d.jpg")
+    if request.values['NumMedia'] != '0':
 
-    resp.append(msg)
+        # Use the message SID as a filename.
+        filename = request.values['MessageSid'] + '.png'
+        with open('{}/{}'.format(DOWNLOAD_DIRECTORY, filename), 'wb') as f:
+           image_url = request.values['MediaUrl0']
+           f.write(requests.get(image_url).content)
+
+        resp.message("Thanks for the image!")
+        detect_text(DOWNLOAD_DIRECTORY + '//' + filename)
+    else:
+        resp.message("Try sending a picture message.")
+
     return str(resp)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
