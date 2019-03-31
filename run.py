@@ -1,42 +1,13 @@
 # /usr/bin/env python
 # Download the twilio-python library from twilio.com/docs/libraries/python
 from flask import Flask, request
-from twilio.twiml.messaging_response import MessagingResponse, Message
-from twilio.rest import Client
-import json
+from twilio.twiml.messaging_response import MessagingResponse
 import requests
-
-import io
+import upload
+import gvis
 import os
 
-# Imports the Google Cloud client library
-from google.cloud import vision
-from google.cloud.vision import types
-
 app = Flask(__name__)
-
-
-def detect_text(path):
-    """Detects text in the file."""
-    from google.cloud import vision
-    client = vision.ImageAnnotatorClient()
-
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-
-    image = vision.types.Image(content=content)
-
-    response = client.text_detection(image=image)
-    texts = response.text_annotations
-    print('Texts:')
-
-    for text in texts:
-        print('\n"{}"'.format(text.description))
-
-        vertices = (['({},{})'.format(vertex.x, vertex.y)
-                    for vertex in text.bounding_poly.vertices])
-
-        print('bounds: {}'.format(','.join(vertices)))
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
@@ -52,11 +23,29 @@ def sms_reply():
         # Use the message SID as a filename.
         filename = request.values['MessageSid'] + '.png'
         with open('{}/{}'.format(DOWNLOAD_DIRECTORY, filename), 'wb') as f:
-           image_url = request.values['MediaUrl0']
-           f.write(requests.get(image_url).content)
+            # Write to image
+            image_url = request.values['MediaUrl0']
+            f.write(requests.get(image_url).content)
 
+
+        # Upload info to server!
+        upload.upload_blob('la-hacks-2019-parsley-parsnips', '{}/{}'.format(DOWNLOAD_DIRECTORY, filename),
+                           filename)
+
+        # Google Vision
+        lst=gvis.detect_text('{}/{}'.format(DOWNLOAD_DIRECTORY, filename))
+        print(lst)
+        # Remove files
+        os.remove('{}/{}'.format(DOWNLOAD_DIRECTORY, filename))
+    
         resp.message("Thanks for the image!")
-        detect_text(DOWNLOAD_DIRECTORY + '//' + filename)
+
+        # Download files
+        
+    elif request.values.get('Body', None) == 'list':
+        for x in lst:
+            resp.message('{} will decay in {}.'.format(x[0],x[1]))
+                         
     else:
         resp.message("Try sending a picture message.")
 
