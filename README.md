@@ -29,7 +29,7 @@ WenTing Fei|Developer
     + google-cloud-storage
 
 3. Set up your authentication tokens for google
-    + exaxmple on windows `set GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_GOOGLE_CREDENTIALS.json'
+    + exaxmple on windows `set GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_GOOGLE_CREDENTIALS.json`
 
 4. Create a bucket in google cloud and edit the `BUCKET` variable in run.py to your newly created bucket name.
 
