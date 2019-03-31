@@ -17,6 +17,7 @@ def sms_reply():
 
     # Declare download directory
     DOWNLOAD_DIRECTORY=".//reciepts"
+    BUCKET='la-hacks-2019-parsley-parsnips'
 
     if request.values['NumMedia'] != '0':
 
@@ -29,7 +30,7 @@ def sms_reply():
 
 
         # Upload info to server!
-        upload.upload_blob('la-hacks-2019-parsley-parsnips', '{}/{}'.format(DOWNLOAD_DIRECTORY, filename),
+        upload.upload_blob(BUCKET, '{}/{}'.format(DOWNLOAD_DIRECTORY, filename),
                            filename)
 
         # Google Vision
@@ -38,16 +39,17 @@ def sms_reply():
         # Remove files
         os.remove('{}/{}'.format(DOWNLOAD_DIRECTORY, filename))
     
-        resp.message("Thanks for the image!")
-
-        # Download files
+        resp.message("Reciept recieved!")
         
+        for x in lst:
+            resp.message('{} will decay in {} days!'.format(x[0],x[1]))
+
     elif request.values.get('Body', None) == 'list':
         for x in lst:
             resp.message('{} will decay in {}.'.format(x[0],x[1]))
                          
     else:
-        resp.message("Try sending a picture message.")
+        resp.message("Please send an image of a reciept!")
 
     return str(resp)
 
